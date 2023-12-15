@@ -18,6 +18,8 @@ package mozilla.components.feature.qr
 import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.Point
@@ -46,7 +48,11 @@ import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat.getColor
@@ -56,6 +62,7 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.LuminanceSource
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -118,6 +125,7 @@ class QrFragment : Fragment() {
     internal lateinit var textureView: AutoFitTextureView
     internal lateinit var customViewFinder: CustomViewFinder
     internal lateinit var cameraErrorView: TextView
+    private lateinit var selectButton: ImageButton
 
     @StringRes
     internal var scanMessage: Int? = null
@@ -232,6 +240,25 @@ class QrFragment : Fragment() {
         }
     }
 
+    /**
+     * An [ActivityResultLauncher] to open the gallery to select an image to scan.
+     */
+    private val imagePicker = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            // create an image from uri
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            val source = readBitmapSource(bitmap)
+            if (qrState == STATE_FIND_QRCODE) {
+                qrState = STATE_DECODE_PROGRESS
+                closeCamera()
+                coroutineScope.launch {
+                    tryScanningSource(source)
+                }
+            }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_layout, container, false)
     }
@@ -240,6 +267,11 @@ class QrFragment : Fragment() {
         textureView = view.findViewById<View>(R.id.texture) as AutoFitTextureView
         customViewFinder = view.findViewById<View>(R.id.view_finder) as CustomViewFinder
         cameraErrorView = view.findViewById<View>(R.id.camera_error) as TextView
+
+        selectButton = view.findViewById(R.id.select_btn) as ImageButton
+        selectButton.setOnClickListener {
+            openSelectFromGalleryActivity()
+        }
 
         CustomViewFinder.setMessage(scanMessage)
         qrState = STATE_FIND_QRCODE
@@ -267,6 +299,16 @@ class QrFragment : Fragment() {
         qrState = STATE_FIND_QRCODE
 
         super.onStop()
+    }
+
+    /**
+     * Open the gallery to select an image to scan.
+     */
+    internal fun openSelectFromGalleryActivity() {
+
+
+
+        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     internal fun maybeStartBackgroundThread() {
@@ -700,6 +742,12 @@ class QrFragment : Fragment() {
             val width = image.width
             val dataWidth = width + ((plane.rowStride - plane.pixelStride * width) / plane.pixelStride)
             return PlanarYUVLuminanceSource(data, dataWidth, height, 0, 0, width, height, false)
+        }
+
+        internal fun readBitmapSource(bitmap:Bitmap): RGBLuminanceSource {
+            val data = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(data, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            return RGBLuminanceSource(bitmap.width, bitmap.height, data)
         }
 
         @Volatile internal var qrState: Int = 0

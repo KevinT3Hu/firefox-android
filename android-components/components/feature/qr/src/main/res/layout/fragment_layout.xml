@@ -6,6 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@android:color/background_dark"
     android:clickable="true"
     android:focusable="true"
@@ -31,5 +32,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true" />
+
+    <ImageButton
+        android:id="@+id/select_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/qr_gallery"
+        app:tint="@android:color/white"
+        android:layout_below="@id/texture"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:contentDescription="@string/mozac_feature_qr_scanner_select_from_gallery_desc"
+        android:background="@android:color/transparent" />
 
 </RelativeLayout>

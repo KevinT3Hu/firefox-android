@@ -10,4 +10,6 @@
     <!-- Text shown if no camera is available on the device and the QR scanner cannot be displayed. -->
     <string name="mozac_feature_qr_scanner_no_camera">No camera available on device</string>
 
+    <!-- Content description for the Select from gallery button. -->
+    <string name="mozac_feature_qr_scanner_select_from_gallery_desc">Select from gallery</string>
 </resources>
