@@ -48,9 +48,9 @@ import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -73,9 +73,7 @@ import mozilla.components.support.base.log.logger.Logger
 import mozilla.components.support.ktx.android.content.hasCamera
 import mozilla.components.support.ktx.android.content.isPermissionGranted
 import java.io.Serializable
-import java.util.ArrayList
 import java.util.Collections
-import java.util.Comparator
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -304,10 +302,7 @@ class QrFragment : Fragment() {
     /**
      * Open the gallery to select an image to scan.
      */
-    internal fun openSelectFromGalleryActivity() {
-
-
-
+    private fun openSelectFromGalleryActivity() {
         imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
